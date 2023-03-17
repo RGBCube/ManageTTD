@@ -5,6 +5,7 @@
 !src/
 
 !.editorconfig
+!openttd.cfg
 !.gitattributes
 !.gitignore
 !v.mod
