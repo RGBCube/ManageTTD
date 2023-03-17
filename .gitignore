@@ -1,4 +1,13 @@
 *
 
+!.github/
+!.github/workflows
+!src/
+
+!.editorconfig
+!.gitattributes
 !.gitignore
+!v.mod
 !*.md
+!*.yml
+!*.v
