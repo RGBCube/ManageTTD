@@ -2,6 +2,16 @@ module config
 
 import strings
 import toml
+import strconv
+
+fn string_is_int(s string) bool {
+	strconv.atoi(s) or { return false }
+	return true
+}
+
+fn string_should_be_quoted(s string) bool {
+	return s !in ['true', 'false'] && !string_is_int(s)
+}
 
 fn nested_string_map_to_toml(m map[string]map[string]string) string {
 	mut toml_string := strings.new_builder(12800)
@@ -10,7 +20,8 @@ fn nested_string_map_to_toml(m map[string]map[string]string) string {
 		toml_string.writeln('[${section}]')
 
 		for field, value in fields {
-			toml_string.writeln('${field} = ${value}')
+			quote := if string_should_be_quoted(value) { '"' } else { '' }
+			toml_string.writeln('${field} = ${quote}${value}${quote}')
 		}
 
 		toml_string.write_rune(`\n`)
@@ -81,8 +92,8 @@ pub fn (mc ManageTTDConfig) to_openttd_config() !OpenTTDConfig {
 		}
 	}
 
-	return OpenTTDConfig{
+	return dump(OpenTTDConfig{
 		content: config
 		@type: mc.@type
-	}
+	})
 }

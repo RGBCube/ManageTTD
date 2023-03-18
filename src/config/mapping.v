@@ -11,7 +11,9 @@ pub fn (m Mapping) str() string {
 		mapping_string.writeln('[${section}]')
 
 		for field, field_value in fields {
-			mapping_string.writeln('${field} = ${field_value.transformed_default_value()}}')
+			value := field_value.transformed_default_value()
+			quote := if string_should_be_quoted(value) { '"' } else { '' }
+			mapping_string.writeln('${field} = ${quote}${value}${quote}')
 		}
 
 		mapping_string.write_rune(`\n`)
