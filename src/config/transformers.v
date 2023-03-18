@@ -1,4 +1,4 @@
-module mapping
+module config
 
 fn seconds_to_ticks(s string) string {
 	return (s.int() * 1000 / 30).str()

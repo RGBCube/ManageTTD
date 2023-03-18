@@ -1,6 +1,23 @@
 module config
 
 import strings
+import toml
+
+fn nested_string_map_to_toml(m map[string]map[string]string) string {
+	mut toml_string := strings.new_builder(12800)
+
+	for section, fields in m {
+		toml_string.writeln('[${section}]')
+
+		for field, value in fields {
+			toml_string.writeln('${field} = ${value}')
+		}
+
+		toml_string.write_rune(`\n`)
+	}
+
+	return toml_string.str()
+}
 
 [noinit]
 pub struct OpenTTDConfig {
@@ -9,17 +26,16 @@ pub struct OpenTTDConfig {
 }
 
 pub fn (oc OpenTTDConfig) str() string {
-	mut config_string := strings.new_builder(12800)
+	return nested_string_map_to_toml(oc.content)
+}
 
-	for section, section_content in oc.content {
-		config_string.write_string('[${section}]\n')
+pub fn managettd_config_from_file(path string, @type ConfigType) !ManageTTDConfig {
+	config_toml := toml.parse_file(path)!
 
-		for field, value in section_content {
-			config_string.write_string('${field} = ${value}\n')
-		}
+	return ManageTTDConfig{
+		content: config_toml.reflect[map[string]map[string]string]()
+		@type: @type
 	}
-
-	return config_string.str()
 }
 
 pub struct ManageTTDConfig {
@@ -27,16 +43,20 @@ pub struct ManageTTDConfig {
 	@type   ConfigType
 }
 
+pub fn (mc ManageTTDConfig) str() string {
+	return nested_string_map_to_toml(mc.content)
+}
+
 // TODO: validate values.
 pub fn (mc ManageTTDConfig) validate() ! {
 	mapping := mc.@type.mapping()
 
-	for section, section_content in mc.content {
+	for section, fields in mc.content {
 		if section !in mapping {
 			return error('Invalid section: ${section}')
 		}
 
-		for field, _ in section_content {
+		for field, _ in fields {
 			if field !in mapping[section] {
 				return error('Invalid key: ${field}')
 			}
@@ -49,20 +69,20 @@ pub fn (mc ManageTTDConfig) to_openttd_config() !OpenTTDConfig {
 
 	mapping := mc.@type.mapping()
 
-	mut openttd_config := map[string]map[string]string{}
+	mut config := map[string]map[string]string{}
 
-	for section, section_content in mc.content {
-		section_mapping := mapping[section]
+	for section, fields in mc.content {
+		section_mapping := mapping[section].clone()
 
-		for field, value in section_content {
+		for field, value in fields {
 			key_mapping := section_mapping[field]
 
-			openttd_config[key_mapping.section()][key_mapping.field()] = key_mapping.transform(value)
+			config[key_mapping.section()][key_mapping.field()] = key_mapping.transform(value)
 		}
 	}
 
 	return OpenTTDConfig{
-		content: openttd_config
+		content: config
 		@type: mc.@type
 	}
 }
