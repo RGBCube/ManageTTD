@@ -1,6 +1,6 @@
 # ConfigTTD
 
-Soon:tm:
+OpenTTD server management software.
 
 ## License
 
