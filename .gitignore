@@ -5,7 +5,9 @@
 
 !src/
 !src/config/
-!src/config/mapping
+
+!src2/
+!src2/config/
 
 !.editorconfig
 !openttd.cfg
